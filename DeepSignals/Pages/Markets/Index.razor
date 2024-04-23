@@ -1,0 +1,139 @@
+﻿@page "/markets"
+@page "/markets/{*route}"
+
+<PageTitle>@AppStateProvider.Title</PageTitle>
+
+<Menu />
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                <Breadcrumb />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @if (!AppStateProvider.IsMarkets() && !AppStateProvider.IsTicker())
+                {
+                    <table>
+                        <tr>
+                            <td class="align-middle">
+                                <h1><i class="oi oi-magnifying-glass fs-1 d-block mx-auto" aria-hidden="true"></i></h1>
+                            </td>
+                            <td class="align-middle">
+                                
+                                @if (!string.IsNullOrEmpty(AppStateProvider.firstParameter) || !string.IsNullOrEmpty(AppStateProvider.secondParameter))
+                                {
+                                    //estas condiciones hacerlas metodo, tb podria filtrarse por issector etc pero no.
+                                    <h1 class="d-inline">@AppStateProvider.Title · </h1>
+                                    <h2 class="d-inline">@AppStateProvider.filteredTickerList.Count() Search Results</h2>                                 
+                                
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                }
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <Select Source="@LocationState.Type" GetSelected="ReadTickerSelected" />
+
+                @if (!AppStateProvider.IsMarkets())
+                {
+                    <Select Source="@LocationState.Sector" GetSelected="ReadTickerSelected2" />
+                    <Select Source="@LocationState.Exchange" GetSelected="ReadTickerSelected2" />
+                    <Select Source="@LocationState.Popular" GetSelected="ReadTickerSelected2" />
+                }
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+@if (AppStateProvider.IsTicker())
+{
+    var alias = AppStateProvider.filteredTickerList.Where(item => item.name == AppStateProvider.firstParameter).Select(item => item.alias).FirstOrDefault();
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th colspan="2">
+                    <h1 class="d-inline">@AppStateProvider.firstParameter · @alias</h1>
+                    <br />
+                    <Select />
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="align-top">
+                    <ShowHistorical parametername="@AppStateProvider.firstParameter" ParametersSetAsync="true" />
+                </td>
+                <td class="align-top">
+                    @foreach (var tickerItem in AppStateProvider?.UNfilteredTickerList.Where(t => t.name != AppStateProvider.firstParameter && t.type == AppStateProvider?.UNfilteredTickerList.FirstOrDefault(item => item.name == AppStateProvider.firstParameter)?.type))
+
+                    //@foreach (var tickerItem in AppStateProvider?.UNfilteredTickerList)//.SelectMany(group => group)
+                    {
+                       //if (tickerItem.name != AppStateProvider.firstParameter)
+                        //{
+                          
+                            <ShowHistorical Type=@Strings.ShowHistorical.Type.Chart parametername="@tickerItem.name" />
+                        //}
+                    }
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+else
+{
+        //data = AppStateProvider.filteredTickerList.SelectMany(group => group.Where(item => ((Models.Type)item.type).ToString() == tickerSelected).Select(item => new { GroupKey = group.Key, Ticker = item })).GroupBy(item => item.GroupKey, item => item.Ticker);
+        @*   AÑADIR DENTRO DE TICKER LIST ESTE COMPONENTE. PASARLE COMO DATA EL DATA QUE TIENE EN EL SELECT.  Y LUEGO REFILTRAR CON EL DATA DE POPULAR *@
+
+    <TickerList Data="@AppStateProvider.filteredTickerList" />
+}
+
+
+
+
+@*
+        var sector = AppStateProvider.SQLService.Tickers.Where(item => item.name == parameterName).Select(item => item.sector).FirstOrDefault();
+
+        var type = AppStateProvider.SQLService.Tickers.Where(item => item.name == parameterName).Select(item => item.type).FirstOrDefault();
+
+        <p>
+            <a href="/markets">Markets</a> >
+
+            <a href="@($"markets/{AppStateProvider.GetTickerTypeName(type)}")">@AppStateProvider.GetTickerTypeName(type)</a> >
+
+            @if (type != 0 && type != 2)
+            {
+
+                <span><a href="@($"markets/{AppStateProvider.GetTickerTypeName(type)}/{AppStateProvider.GetSectorName(type, sector)}")">@AppStateProvider.GetSectorName(type, sector)</a> > </span>
+
+            }
+
+            @parameterName
+        </p>
+
+                <img src=@("https://localhost:7123/" + parameterName + ".svg") />
+
+        *@
+
+
+
+@*
+        <p>
+            <a href="/markets">Markets</a> >
+            @if (AppStateProvider.IsSector())
+            {
+                var type = AppStateProvider.GetTickerTypeName(AppStateProvider.filteredTickerList.Select(item => item.type).FirstOrDefault());
+
+                <span><a href="@($"markets/{type}")">@type</a> > </span>
+            }
+
+            @parameterName
+
+        </p>
+        *@

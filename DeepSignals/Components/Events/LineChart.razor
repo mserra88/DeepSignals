@@ -1,0 +1,21 @@
+﻿@*
+
+@if (DataPoints is not null)
+{
+    <svg width="500" height="300">
+        <line x1="50" y1="250" x2="450" y2="250" style="stroke: black; stroke-width: 2" />
+        <line x1="50" y1="50" x2="50" y2="250" style="stroke: black; stroke-width: 2" />
+
+        @foreach (var point in DataPoints)
+        {
+                <circle cx="@point.X" cy="@point.Y" r="2" fill="blue" />
+        }
+
+        <polyline points="@DataPointsString" style="fill: none; stroke: red; stroke-width: 2" />
+    </svg>
+
+
+}
+
+
+*@

@@ -1,0 +1,52 @@
+﻿@code{
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+}
+
+@{
+    var Selectdata = AppStateProvider?.UNfilteredTickerList.GroupBy(item => item.type).Select(group => group.First()).Reverse();
+
+    Selectdata = Selectdata.Prepend(new Tickers
+            {
+                type = "All",
+            });
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        @foreach (var items in Selectdata)
+        {
+            var url = items.type;
+            @if (items.type == "All")
+            {
+                url = "";
+            }
+
+            <div class="col">
+                <NavLink class="text-decoration-none btn btn-primary w-100 mx-auto" href='@($"markets/{url}")' Match="NavLinkMatch.All">
+                    @if (items.type == "Stocks")
+                    {
+                        <i class="oi oi-bar-chart fs-3 d-block mx-auto" aria-hidden="true"></i>
+                    }
+                    else if (items.type == "Indices")
+                    {
+                        <i class="oi oi-file fs-3 d-block mx-auto" aria-hidden="true"></i>
+                    }
+                    else if (items.type == "Currencies")
+                    {
+                        <i class="oi oi-dollar fs-3 d-block mx-auto" aria-hidden="true"></i>
+                    }
+                    else if (items.type == "Cryptocurrencies")
+                    {
+                        <i class="oi oi-globe fs-3 d-block mx-auto" aria-hidden="true"></i>
+                    }
+                    else if (items.type == "All")
+                    {
+                        <i class="oi oi-grid-two-up fs-3 d-block mx-auto" aria-hidden="true"></i>
+                    }
+                    <span class="d-block text-center">@items.type</span>
+                </NavLink>
+            </div>
+        }
+    </div>
+</div>

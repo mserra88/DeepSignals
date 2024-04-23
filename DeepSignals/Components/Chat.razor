@@ -1,0 +1,13 @@
+﻿<div class="form-group d-none">
+    <label>
+        User:
+    </label>
+
+        <input @bind="AppStateProvider.userInput" />
+</div>
+<div class="form-group">
+    <input class="d-inline w-25" @bind="AppStateProvider.messageInput" size="50" />
+    <button  @onclick="AppStateProvider.SendPublicMessage" disabled="@(!AppStateProvider.SignalRService.IsConnected)">Send</button>
+</div>
+
+<ShowPublicMessage />

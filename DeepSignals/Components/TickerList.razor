@@ -1,0 +1,141 @@
+﻿@code {
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+    /*
+    private IEnumerable<IGrouping<int, Tickers>>? Data { get; set; }
+
+    private IEnumerable<IGrouping<int, Tickers>>? DataDefault => AppStateProvider?.filteredTickerList;
+
+    [Parameter]
+    public IEnumerable<IGrouping<int, Tickers>>? DataParameter { get; set; }
+    */
+
+    [Parameter]
+    public IEnumerable<Tickers>? Data { get; set; }
+
+    [Parameter]
+    public bool Show { get; set; } = true;
+}
+@*
+@if (DataParameter != null && DataParameter.Any())
+{
+    Data = DataParameter;
+}
+else
+{
+    Data = DataDefault;
+    //popular
+    //Data = DataDefault.SelectMany(group => group.Where(item => item.popular == true).Select(item => new { GroupKey = group.Key, Ticker = item })).GroupBy(item => item.GroupKey, item => item.Ticker);                            // Filtrar nuevamente para incluir solo elementos populares
+    //popular
+}
+*@
+
+@if (Data != null && Data.Any())
+{
+    string previousTickerType = ""; // Valor inicial para el seguimiento
+
+    @foreach (var ticker in Data)
+    {
+        @if (Enum.TryParse<Models.Type>(ticker.type.ToString(), out var type))
+        {
+            string typeString = type.ToString();
+            //bool selected = (StringParameter == value);//////////////MAL
+
+            //if (selected || string.IsNullOrEmpty(StringParameter))//////////////MAL
+            //{
+                //foreach (var ticker in tickerGroup)
+                //{
+
+
+                        //var type = Models.MappedDictionary.StateToInfo[tickerType].Type;
+
+            var (sectorTitle, sector) = DeepSignals.Services.SQLService.GetSector(type, ticker.sector);
+            var (exchangeTitle, exchange) = DeepSignals.Services.SQLService.GetExchange(type, ticker.exchange);
+
+                        // Mostrar COMPONENTE - BREADCRUMB solo cuando tickerType cambia de valor
+                        if (typeString != previousTickerType && Show)
+                        {
+                            <div id="BREADCRUMB" class="d-block display-4 d-none">
+
+
+                                @if (!AppStateProvider.IsMarkets() && !AppStateProvider.IsHome())
+                                {
+                                    <a href="markets">Markets</a>
+                                    <span> / </span>
+                                }
+
+                                @if (AppStateProvider.IsType())
+                                {
+                                    @type
+                                }
+                                else
+                                {
+                                    <a href="markets/@type">@type</a>
+                                }
+
+
+
+                                @if (!AppStateProvider.IsMarkets())
+                                {
+                                    if (AppStateProvider.IsSector())
+                                    {
+                                        <span> / </span>
+                                        @sectorTitle
+                                    }
+                                    else if (AppStateProvider.IsExchange())
+                                    {
+                                        <span> / </span>
+                                        @exchangeTitle
+                                    }
+                                    else if (AppStateProvider.IsPopular())
+                                    {
+                                        <span> / </span>
+                                        <span>Popular</span>
+                                    }
+                                }
+
+                            </div>
+                        }
+
+
+                            <div class="d-block">
+                            <a href="@($"markets/{ticker.name}")">@ticker.name</a>
+                <a href="markets/@type/@ticker.sector">@ticker.sector</a>
+                <a href="markets/@type/@ticker.exchange">@ticker.exchange</a>
+
+                        @*
+                                @if (!string.IsNullOrEmpty(sector))
+                                {
+                            <a href="markets/@type/@sector">@sectorTitle</a>
+                                }
+
+                                @if (!string.IsNullOrEmpty(exchange))
+                                {
+                            <a href="markets/@type/@exchange">@exchangeTitle</a>
+                                }
+                                *@
+
+                                @if (!string.IsNullOrEmpty(ticker.popular))
+                                {
+                            <a href="markets/@type/popular">Popular</a>
+                                }  
+                        
+
+                        </div>
+
+            previousTickerType = typeString;
+
+               // }
+
+
+        }
+
+        //}
+
+    }
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+

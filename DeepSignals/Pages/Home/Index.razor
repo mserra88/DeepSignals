@@ -1,0 +1,16 @@
+﻿@page "/"
+<PageTitle>@AppStateProvider.Title</PageTitle>
+<marquee>
+    <div class="d-flex flex-nowrap">
+        @foreach (var tickerItem in AppStateProvider?.UNfilteredTickerList.Where(item => item.featured == true))
+        {
+            <ShowHistorical Type=@Strings.ShowHistorical.Type.Chart parametername="@tickerItem.name" Mini="true" />
+        }
+    </div>
+</marquee>
+<hr />
+<a href="markets/movers">Market Movers</a>
+<hr />
+<Popular />
+<hr />
+<TickerCards />

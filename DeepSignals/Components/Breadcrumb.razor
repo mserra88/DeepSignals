@@ -1,0 +1,40 @@
+﻿@code{
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+}
+<div>
+
+    @if (!AppStateProvider.IsMarkets())
+    {
+        <a href="markets">Markets</a>
+        <span> / </span>
+    }
+
+    @if (AppStateProvider.IsType())
+    {
+        @AppStateProvider.firstParameter
+    }
+    else
+    {
+        <a href="markets/@AppStateProvider.firstParameter">@AppStateProvider.firstParameter</a>
+    }
+
+    @if (!AppStateProvider.IsMarkets())
+    {
+        if (AppStateProvider.IsSector())
+        {
+            <span> / </span>
+            @AppStateProvider.secondParameter
+        }
+        else if (AppStateProvider.IsExchange())
+        {
+            <span> / </span>
+            @AppStateProvider.secondParameter
+        }
+        else if (AppStateProvider.IsPopular())
+        {
+            <span> / </span>
+            <span>Popular</span>
+        }
+    }
+</div>

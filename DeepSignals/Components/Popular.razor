@@ -1,0 +1,47 @@
+﻿@code {
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+
+    private async Task ReadTickerSelected(string _tickerSelected) => tickerSelected = _tickerSelected;
+
+    private string tickerSelected { get; set; }
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+
+            <table class="table table-borderless">
+                <tbody class="border-1 border-dark bg-light text-dark">
+                    <tr>
+                        <td colspan="2" class="align-middle"><h4>Show me the most</h4></td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle"><h4>popular</h4></td>
+                        <td class="align-middle"><Select Source=@LocationState.Type Type=@SelectType.Popular GetSelected="ReadTickerSelected" /></td> @*AppStateProvider?.filteredTickerList *@
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="align-middle">
+                            <a type="button" class="btn btn-primary" href="markets/@tickerSelected/popular">View All</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <div class="col-8">
+            @{
+                //var data = AppStateProvider.filteredTickerList.SelectMany(group => group.Where(item => item.popular == true && ((Models.Type)item.type).ToString() == tickerSelected).Select(item => new { GroupKey = group.Key, Ticker = item })).GroupBy(item => item.GroupKey, item => item.Ticker);
+
+                var data = AppStateProvider.filteredTickerList.Where(item => item.popular == "popular" && item.type == tickerSelected);
+
+                @*   AÑADIR DENTRO DE TICKER LIST ESTE COMPONENTE. PASARLE COMO DATA EL DATA QUE TIENE EN EL SELECT.  Y LUEGO REFILTRAR CON EL DATA DE POPULAR *@            
+            }
+                                                
+            <TickerList Data="@data" Show=@false />@* StringParameter=@tickerSelected *@
+
+        </div>
+    </div>
+</div>
+
+@* Data="@AppStateProvider.filteredTickerList.Where(item => item.popular == true).ToList()" *@

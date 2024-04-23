@@ -1,0 +1,59 @@
+﻿@page "/ShowOnlineClients"
+
+@if (!AppStateProvider.IsLoaded || AppStateProvider.OnlineClients is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>ShowOnlineClients (@AppStateProvider.OnlineClients.Count)</h1>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>USER</th>
+                <th>TAB</th>
+                <th>CID</th>
+                <th>VISITS</th>
+                <th>LIST</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var userEntry in AppStateProvider.OnlineClients)
+            {
+                className = "";
+                if (AppStateProvider.Session.UserId == userEntry.Key)
+                {
+                    className = "fw-bold";
+                }
+
+                <tr>
+                    <td class="@className">@userEntry.Key</td>
+                    <td colspan="4"></td> <!-- Celda vacía para el encabezado del usuario -->
+                </tr>
+                @foreach (var tabEntry in userEntry.Value)
+                {
+                    className = "";
+                    if (AppStateProvider.Session.TabId == tabEntry.Key)
+                    {
+                        className = "fw-bold";
+                    }
+
+                    <tr>
+                        <td></td> <!-- Celda vacía para la columna de usuario -->
+                        <td class="@className">@tabEntry.Key</td>
+                        <td class="@className">@tabEntry.Value.Item1</td>
+
+                        <td>
+                            @foreach (var item in tabEntry.Value.Item2)
+                            {
+                                <span>@item</span>
+                                <br />
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}

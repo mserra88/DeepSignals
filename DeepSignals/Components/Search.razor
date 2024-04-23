@@ -1,0 +1,21 @@
+﻿@code{
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+
+    private IEnumerable<Tickers>? data => AppStateProvider?.UNfilteredTickerList;
+}
+
+@if (data != null && data.Any())
+{
+    <input id="search" class="w-100 mx-auto" list="searchList" placeholder="Search" type="text" @onchange="AppStateProvider.Navigate" /> @*value="Search" bind="bindInput"*@
+    <datalist id="searchList">
+        @foreach (var tickerItem in data)
+        {
+            <option value="@tickerItem.name"></option>
+        }
+    </datalist>
+}
+else
+{   
+    <p><em>Loading...</em></p>
+}

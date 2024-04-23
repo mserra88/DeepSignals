@@ -1,0 +1,174 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using System.Reflection;
+
+@code {
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+
+    [Parameter]
+    public LocationState Source { get; set; }
+
+    [Parameter]
+    public SelectType Type { get; set; }
+
+    [Parameter]
+    public EventCallback<string> GetSelected { get; set; }
+
+    private string Selected { get; set; }
+
+    private bool AvoidPrepend { get; set; }
+
+    private bool InvokeAsync { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Type == SelectType.Popular)
+        {            
+            AvoidPrepend = true;
+            InvokeAsync = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (InvokeAsync)//quizae esto no haga falta cuando popular este bien. quiza.
+            {
+                await GetSelected.InvokeAsync(Selected);
+            }
+        }
+    }
+
+    private async Task OnInput(ChangeEventArgs e) => await GetSelected.InvokeAsync((string)e.Value);
+
+    public (bool Show, IEnumerable<Tickers> Data) GetData() //NO DEBERIA OBTENER TICKERS, SI NO ELEMENTOS DEL "SELECT"
+    {
+
+        IEnumerable<Tickers> Data = Source == LocationState.Type
+            
+            ? AppStateProvider?.UNfilteredTickerList?.GroupBy(item => item.type).Select(group => group.First()).Reverse()
+
+            : AppStateProvider?.UNfilteredTickerList?.Where(item => item.type == AppStateProvider?.firstParameter);
+
+
+
+        var Show = false;
+
+        if (Data != null && Data.Any())
+        {
+            var property = Source.ToString().ToLower();
+
+            var firstItem = Data.First();
+            var propertyType = firstItem?.GetType();
+            var propertyInfo = propertyType?.GetProperty(property);
+
+            if (!string.IsNullOrEmpty(propertyInfo?.GetValue(firstItem).ToString()))
+            {
+                Show = true;
+
+                if (!AvoidPrepend)
+                {
+                    //object value = Source == LocationState.Popular ? (object)false : "All";
+                    var newItem = new Tickers();
+                    propertyInfo?.SetValue(newItem, Convert.ChangeType("All", propertyInfo.PropertyType));
+                    Data = Data.Prepend(newItem);
+                }
+
+
+                Data = Data.DistinctBy(item => propertyInfo?.GetValue(item));
+
+
+                bool anyFieldContainsValue = Data.Any(item =>
+                {
+                    string firstTargetValue = AppStateProvider.firstParameter;
+                    string secondTargetValue = AppStateProvider.secondParameter;
+
+                    string propertyValue = propertyInfo?.GetValue(item)?.ToString();
+
+                    if (!string.IsNullOrEmpty(firstTargetValue) && propertyValue == firstTargetValue)
+                    {
+                        Selected = firstTargetValue;
+                        return true;
+                    }
+                    else if (!string.IsNullOrEmpty(secondTargetValue) && propertyValue == secondTargetValue)
+                    {
+                        Selected = secondTargetValue;
+                        return true;
+                    }
+
+                    return false;
+                });
+
+                if (!anyFieldContainsValue)
+                {
+                    Selected = propertyInfo?.GetValue(Data.FirstOrDefault())?.ToString();
+                }
+            }
+        }
+
+        return (Show, Data);
+    }
+
+    private (bool isSelected, string value, string title) ProcessItem(Tickers t)
+    {
+        string value = Source == LocationState.Type ? t.type :
+                       Source == LocationState.Sector ? t.sector :
+                       Source == LocationState.Exchange ? t.exchange :
+                       //Source == LocationState.Popular ? (t.popular ? "popular" : "All") :
+                       Source == LocationState.Popular ? t.popular :
+                       string.Empty;
+
+        string title = string.Empty;
+
+        if (Enum.TryParse<Models.Type>(t.type, out var type))
+        {
+            var (typeTitle, stringType) = DeepSignals.Services.SQLService.GetType(type);
+
+            var (sectorTitle, sector) = DeepSignals.Services.SQLService.GetSector(type, value);
+
+            var (exchangeTitle, exchange) = DeepSignals.Services.SQLService.GetExchange(type, value);
+
+            if (stringType == value)
+            {
+                title = typeTitle;
+            }
+            else if (sector == value)
+            {
+                title = sectorTitle;
+            }
+            else if (exchange == value)
+            {
+                title = exchangeTitle;
+            }
+            else
+            {
+                title = value; // popular...
+            }
+        }
+
+        if (string.IsNullOrEmpty(title))
+        {
+            title = value; // All
+        }
+
+        return ((Selected == value), value, title);
+    }
+}
+
+@{
+    var (Show, Data) = GetData();
+
+
+    @if (Show)
+    {
+        <InputSelect @bind-Value="Selected" @oninput="OnInput">
+            @foreach (var (isSelected, value, title) in Data.Select(ProcessItem))
+            {
+                <option id="@(isSelected ? "Selected" : "")" selected="@isSelected" value="@value">
+                    @title
+                </option>
+            }
+        </InputSelect>
+    }
+}

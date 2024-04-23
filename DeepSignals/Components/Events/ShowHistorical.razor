@@ -1,0 +1,308 @@
+﻿@if (model != null && model.Any())
+{
+    
+
+    if (tickerData != null)
+    {
+        var value = tickerData.CurrentPriceData;
+        var currentCandle = tickerData.CurrentCandle;
+        var updatetime = tickerData.DateTimeNow;
+
+
+        _up = updatetime;
+        recievedParameterName = parametername;
+        currentTime = DateTime.Now.ToString();
+
+        lastCandle = currentCandle;
+
+
+
+
+        if (value is not null)
+        {
+            PD = value;
+
+
+            rand = value.Price;
+        }
+
+        //model = mod;
+
+        if (update && showChart)//
+        {
+            // Obtener el índice del último elemento
+
+            // Reemplazar el valor _Close del último elemento en la lista
+
+
+            //model[model.Count - 1]._Close = rand;
+
+
+            // Luego de actualizar el último valor, el resto del código sigue igual...
+            //model = model;//.GetRange(lastIndex - 99, 100); // Esto asume que hay al menos 100 elementos en la lista 'model'.
+
+            // Limpiar los datos anteriores
+            xSource.Clear();
+            ySource.Clear();
+
+            if (!isCalculated)
+            {
+
+            }
+            // Esto asume que hay al menos 100 elementos en la lista 'model'.
+
+
+
+
+            // Agregar los nuevos datos al gráfico
+            foreach (var item in model)
+            {
+                xSource.Add(item._Date.ToString());
+                ySource.Add((int)item._Close);
+            }
+
+            if (!ParametersSetAsync)
+            {
+                // update = false;
+            }
+            //update = false;
+
+            // Generar el gráfico SVG
+            SvgChart = GetCachedSvgChart(parametername);
+            
+
+        }
+
+
+        // Access the data properties like tickerData.CurrentPriceData, tickerData.CurrentCandle, etc.
+    }
+    else
+    {
+        // Handle the case when the data for the specified ticker is not found in the dictionary
+    }
+
+
+    var alias = "";//AppStateProvider.SQLService.Tickers.Where(item => item.name == parametername).Select(item => item.alias).FirstOrDefault();
+
+    <table class="table table-bordered table-striped">
+        <tbody>
+            <tr>
+                <td><a href="@($"markets/{parametername}")">@parametername</a></td>
+                <td>
+                    <!-- tickerData is not null-->
+                    @if (tickerData?.CurrentCandle?.Minute != DateTime.MinValue && tickerData != null) @tickerData.CurrentCandle.Move
+                </td>
+
+                @if (tickerData?.CurrentCandle?.Minute != DateTime.MinValue && tickerData != null)
+                {
+                    <td>@tickerData.CurrentPriceData.Price</td>
+
+
+
+                    @if (Mini != true)
+                    {
+                        // Imprimir los datos relativos a la vela
+                        <p>Minute: @tickerData.CurrentCandle.Minute</p>
+                        <p>Open Price: @tickerData.CurrentCandle.OpenPrice</p>
+                        <p>Close Price: @tickerData.CurrentCandle.ClosePrice</p>
+                        <p>Max Price: @tickerData.CurrentCandle.MaxPrice</p>
+                        <p>Min Price: @tickerData.CurrentCandle.MinPrice</p>
+                        <p>Current Price: @tickerData.CurrentCandle.CurrentPrice</p>
+
+                        <hr />
+                        <hr />
+                        <hr />
+                    }
+                     
+
+
+
+                }
+
+
+@if (Mini != true)
+{
+                     
+               
+                            int i = 1; // Inicializar la variable i fuera del bucle foreach
+            
+
+                @foreach (var property in typeof(DeepSignals.Models.PriceData).GetProperties())
+                {
+                    string propertyName = property.Name;
+
+
+
+                    if (tickerData?.CurrentPriceData?.Id != null)
+                    {
+                        object propertyValue = property.GetValue(tickerData.CurrentPriceData);//PD
+                        <p>
+                            @if (@propertyName != "OptionsString" && @propertyName != "QuotesString" && @propertyName != "MarketHoursString")
+                            {
+                                @(i++ + ". ")
+
+
+                            }
+
+                            @propertyName : @propertyValue
+                        </p>
+
+
+                    }
+
+
+
+                }
+}
+                @*
+                <td>@currentTime</td>
+                <td>@DivID</td>
+                *@
+                @if (showDetail)
+                {
+
+                    <td>
+                        @*
+                        Group days by.
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-primary" @onclick="()=> Group(m)">1m</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Group(w)">1w</button>
+                            <button type="button" class="btn btn-primary active" aria-current="page" @onclick="()=> Group(d)">1d</button>
+                        </div>
+                        <br />
+                        Show days by.
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(max)">MAX</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(y25)">Last 25 years</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(y10)">Last 10 years</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(y3)">Last 3 years</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(y)">Last year</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(m6)">Last 6 Months</button>
+                            <button type="button" class="btn btn-primary" @onclick="()=> Show(m)">Last Month</button>
+                            <button type="button" class="btn btn-primary active" aria-current="page" @onclick="()=> Show(w)">Last week</button>
+                        </div>
+                        *@
+                        <button type="button" class="btn btn-primary" @onclick="ToggleDetail">
+                            @ToggleDetailButtonText
+                        </button>
+                    </td>
+
+                }
+            </tr>
+        </tbody>
+    </table>
+
+    @if (showChart && Mini != true) 
+    {
+        
+        <div>
+            @((MarkupString)SvgChart) <!-- Renderizar el contenido como MarkupString -->
+        </div>
+        
+        @*
+        <LineChart DataPoints="@ChartData" />
+        *@
+        @*
+        <Chart Model=@Model parametername=@parametername ParametersSetAsync="true" />
+        *@
+    }
+
+
+    if (showDetail && Mini != true)
+    {       
+    
+
+        <hr />
+
+        <table class="@DetailCssClass table table-bordered table-striped small" style="font-size:8px;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Open</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Close</th>
+                    <th>CloseAdj</th>
+                    <th>Volume</th>
+                    <th>PriceChange</th>
+                    <th>VolumeChange</th>
+                    <th>VolumeIndicator</th>
+                    <th>MA_0</th>
+                    <th>MA_1</th>
+                    <th>MA_2</th>
+                    <th>TRIX</th>
+                    <th>RSI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+       
+
+                }
+
+                @foreach (var data in model.AsEnumerable().Reverse().Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage))
+                {
+                    <tr>
+                        <td>@data._Date</td>
+                        <td>@data._Open</td>
+                        <td>@data._High</td>
+                        <td>@data._Low</td>
+                        <td>@data._Close</td>
+                        <td>@data._AdjClose</td>
+                        <td>@data._Volume</td>
+                        <td>@data._PriceChange</td>
+                        <td>@data._VolumeChange</td>
+                        <td>@data._VolumeIndicator</td>
+                        <td>@data._MA_0</td>
+                        <td>@data._MA_1</td>
+                        <td>@data._MA_2</td>
+                        <td>@data._TRIX</td>
+                        <td>@data._RSI</td>
+                    </tr>
+                }
+
+
+                <tr>
+
+                    <td colspan="15">
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary" disabled="@IsFirstPage" @onclick="GoToFirstPage">Ir al principio</button>
+
+                            <button type="button" class="btn btn-primary" disabled="@IsFirstPage" @onclick="() => ChangePage(-1)">Anterior</button>
+
+                            <span class="page-info mx-1">Página @currentPage de @TotalPages</span>
+
+                            <button type="button" class="btn btn-primary" disabled="@IsLastPage" @onclick="() => ChangePage(1)">Siguiente</button>
+                            <button type="button" class="btn btn-primary" disabled="@IsLastPage" @onclick="GoToLastPage">Ir al final</button>
+
+                        </div>
+                    </td>
+                </tr>
+
+
+
+
+
+
+
+
+
+            </tbody>
+        </table>                       
+
+     
+    }
+
+
+}
+else
+{
+    <p>No historical data available.</p>
+}
+
+@if (!string.IsNullOrEmpty(DerivedException))
+{
+    <div>Error: @DerivedException</div>
+}
+
+<p>@err</p>

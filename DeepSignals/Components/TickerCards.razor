@@ -1,0 +1,64 @@
+﻿@code {
+    [CascadingParameter]
+    private AppStateProvider? AppStateProvider { get; set; }
+
+    int currentPage = 1;
+    int itemsPerPage = 3;
+    bool IsFirstPage => currentPage == 1;
+    bool IsLastPage => currentPage == TotalPages;
+
+    int TotalPages => (int)model.Count() / itemsPerPage;
+    IEnumerable<Tickers> model;
+
+    async Task ChangePage(int pageChange)
+    {
+        currentPage += pageChange;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task GoToFirstPage()
+    {
+        currentPage = 1;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task GoToLastPage()
+    {
+        currentPage = TotalPages;
+        await InvokeAsync(StateHasChanged);
+    }
+}
+
+
+@{
+    model = AppStateProvider?.UNfilteredTickerList.OrderBy(item => item.id);
+    //model = AppStateProvider?.UNfilteredTickerList.OrderBy(item => Guid.NewGuid()); // randomizar.
+}
+
+<div class="card-group">
+    @foreach (var tickerItem in model.AsEnumerable().Reverse().Skip((currentPage - 1) * itemsPerPage).Take(itemsPerPage))
+    {
+        <div class="card">
+            <img class="card-img-top" src="..." alt="Card image cap">
+            <div class="card-body">
+                <h5 class="card-title">@tickerItem.name</h5>
+                <p class="card-text">This content is a little bit longer.</p>
+            </div>
+            <div class="card-footer">
+                <small class="text-muted">Last updated 3 mins ago</small>
+            </div>
+        </div>
+    }
+</div>
+<div class="text-center">
+    <button type="button" class="btn btn-primary" disabled="@IsFirstPage" @onclick="GoToFirstPage">Ir al principio</button>
+
+    <button type="button" class="btn btn-primary" disabled="@IsFirstPage" @onclick="() => ChangePage(-1)">Anterior</button>
+
+    <span class="page-info mx-1">Página @currentPage de @TotalPages</span>
+
+    <button type="button" class="btn btn-primary" disabled="@IsLastPage" @onclick="() => ChangePage(1)">Siguiente</button>
+    <button type="button" class="btn btn-primary" disabled="@IsLastPage" @onclick="GoToLastPage">Ir al final</button>
+
+</div>
